@@ -2,15 +2,28 @@ const ContactService = require("../services/contact.service");
 const MongoDB = require("../utils/mongodb.util");
 const ApiError = require("../api-error");
 
-exports.create = (req, res) => {
-    res.send({message: 'create handler'});
+exports.create = async (req, res, next) => {
+    if (!req.body?.name) {
+        return next(new ApiError(400, "name can not be empty"));
+    }
+
+    try {
+        const contactService = new ContactService(MongoDB.client);
+        const document = await contactService.create(req.body);
+        return res.send(document);
+    } catch (err) {
+        console.log('err',err);
+        return next(
+            new ApiError(500, 'an error occurred while creating the contact')
+        );
+    }
 };
 
 exports.findAll = async (req, res, next) => {
     let documents = [];
 
     try {
-        const contactService = new ContactService(Mongodb.client);
+        const contactService = new ContactService(MongoDB.client);
         const { name } = req.query;
         if (name) {
             documents = await contactService.findByName(name);
@@ -20,21 +33,22 @@ exports.findAll = async (req, res, next) => {
     } catch (err) {
         return next(
             new ApiError(500, "an error occurred")
-        )
+        );
     }
 
-    return res.sed(documents);
+    return res.send(documents);
 };
 
 exports.findOne = async (req, res, next) => {
     try {
         const contactService = new ContactService(MongoDB.client);
-        const document = await contactService.findOne(req.params.id);
+        const document = await contactService.findById(req.params.id);
         if (!document) {
             return next(new ApiError(404, "contact not found"));
         }
         return res.send(document);
     } catch (err) {
+        console.log(err)
         return next(
             new ApiError(500, 'error retrieving contact with id =${req.params.id}')
         );

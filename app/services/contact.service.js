@@ -1,8 +1,8 @@
-const { objectId } = require("mongodb");
+const { ObjectId } = require("mongodb");
 
 class ContactService {
     constructor(client) {
-        this.Contact = client.db().collection("contact");
+        this.Contact = client.db().collection("contacts");
     }
 
     extractConactData(payload) {
@@ -14,7 +14,7 @@ class ContactService {
             favorite: payload.favorite,
         };
         // Remove undefined fields
-        Objects.keys(contact).forEach(
+        Object.keys(contact).forEach(
             (key) => contact[key] === undefined && delete contact[key]
         );
         return contact;
